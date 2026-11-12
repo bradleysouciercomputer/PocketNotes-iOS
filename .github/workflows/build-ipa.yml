@@ -10,13 +10,17 @@ permissions:
 
 jobs:
   build:
-    runs-on: macos-15
+    # Xcode 27 includes the iOS 27 SDK and the refreshed 2027 SwiftUI system appearance.
+    runs-on: xcode-27
     steps:
       - name: Check out source
         uses: actions/checkout@v4
 
-      - name: Show Xcode version
-        run: xcodebuild -version
+      - name: Verify Xcode and iOS SDK
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
 
       - name: Build unsigned iOS app
         run: |
@@ -46,7 +50,7 @@ jobs:
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PocketNotes-IPA
+          name: PocketNotes-iOS-27-IPA
           path: PocketNotes.ipa
           if-no-files-found: error
           retention-days: 14
