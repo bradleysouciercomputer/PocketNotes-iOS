@@ -151,7 +151,6 @@ struct ContentView: View {
             .padding(.vertical, 3)
         }
         .scrollIndicators(.hidden)
-        .contentMargins(.trailing, 2)
     }
 
     private func filterChip(_ filter: NotesFilter) -> some View {
@@ -159,7 +158,7 @@ struct ContentView: View {
         let count = store.notes.filter(filter.includes).count
 
         return Button {
-            withAnimation(.snappy(duration: 0.22)) {
+            withAnimation(.easeInOut(duration: 0.22)) {
                 activeFilter = filter
             }
         } label: {
