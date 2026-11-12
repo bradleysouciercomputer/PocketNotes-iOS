@@ -8,6 +8,10 @@ name: Build Pocket Notes IPA
 permissions:
   contents: read
 
+concurrency:
+  group: pocket-notes-ipa
+  cancel-in-progress: true
+
 jobs:
   build:
     # Xcode 27 includes the iOS 27 SDK and the refreshed 2027 SwiftUI system appearance.
