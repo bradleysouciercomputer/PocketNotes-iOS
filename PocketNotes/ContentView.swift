@@ -20,13 +20,21 @@ struct ContentView: View {
         }
     }
 
+    private var pinnedNotes: [Note] {
+        visibleNotes.filter(\.isPinned)
+    }
+
+    private var regularNotes: [Note] {
+        visibleNotes.filter { !$0.isPinned }
+    }
+
     var body: some View {
         NavigationStack {
             Group {
                 if visibleNotes.isEmpty {
                     emptyState
                 } else {
-                    notesList
+                    notesContent
                 }
             }
             .background(Color(uiColor: .systemGroupedBackground))
@@ -34,7 +42,7 @@ struct ContentView: View {
             .navigationBarTitleDisplayMode(.large)
             .searchable(text: $searchText, prompt: "Search your notes")
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         editingNote = Note()
                     } label: {
@@ -48,60 +56,96 @@ struct ContentView: View {
                 NoteEditorView(note: note) { savedNote in
                     store.save(savedNote)
                 }
+                .presentationDragIndicator(.visible)
             }
         }
     }
 
-    private var notesList: some View {
-        List {
-            if visibleNotes.contains(where: \.isPinned) {
-                Section("Pinned") {
-                    ForEach(visibleNotes.filter(\.isPinned)) { note in
-                        noteRow(note)
-                    }
+    private var notesContent: some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 26) {
+                if !pinnedNotes.isEmpty {
+                    notesSection(
+                        title: "Pinned",
+                        subtitle: "Kept close at hand",
+                        notes: pinnedNotes
+                    )
+                }
+
+                if !regularNotes.isEmpty {
+                    notesSection(
+                        title: pinnedNotes.isEmpty ? "All Notes" : "More Notes",
+                        subtitle: nil,
+                        notes: regularNotes
+                    )
                 }
             }
+            .padding(.horizontal, 18)
+            .padding(.top, 10)
+            .padding(.bottom, 32)
+            .frame(maxWidth: 760)
+            .frame(maxWidth: .infinity)
+        }
+        .scrollIndicators(.hidden)
+    }
 
-            let regularNotes = visibleNotes.filter { !$0.isPinned }
-            if !regularNotes.isEmpty {
-                Section(visibleNotes.contains(where: \.isPinned) ? "Other Notes" : "All Notes") {
-                    ForEach(regularNotes) { note in
-                        noteRow(note)
-                    }
+    private func notesSection(title: String, subtitle: String?, notes: [Note]) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline, spacing: 9) {
+                Text(title)
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(.primary)
+
+                Text("\(notes.count)")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Color(uiColor: .tertiarySystemFill), in: Capsule())
+
+                Spacer()
+            }
+
+            if let subtitle {
+                Text(subtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, -8)
+            }
+
+            LazyVStack(spacing: 11) {
+                ForEach(notes) { note in
+                    noteCard(note)
                 }
             }
         }
-        .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
     }
 
-    private func noteRow(_ note: Note) -> some View {
+    private func noteCard(_ note: Note) -> some View {
         Button {
             editingNote = note
         } label: {
-            NoteRow(note: note)
-                .contentShape(Rectangle())
+            NoteCard(note: note)
+                .padding(17)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    Color(uiColor: .secondarySystemGroupedBackground),
+                    in: RoundedRectangle(cornerRadius: 23, style: .continuous)
+                )
+                .overlay {
+                    RoundedRectangle(cornerRadius: 23, style: .continuous)
+                        .strokeBorder(Color.primary.opacity(0.045), lineWidth: 1)
+                }
         }
         .buttonStyle(.plain)
-        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            Button(role: .destructive) {
-                store.delete(note)
-            } label: {
-                Label("Delete", systemImage: "trash")
-            }
-
-            Button {
-                store.togglePin(note)
-            } label: {
-                Label(note.isPinned ? "Unpin" : "Pin", systemImage: note.isPinned ? "pin.slash" : "pin")
-            }
-            .tint(.orange)
-        }
         .contextMenu {
             Button {
                 store.togglePin(note)
             } label: {
-                Label(note.isPinned ? "Unpin Note" : "Pin Note", systemImage: note.isPinned ? "pin.slash" : "pin")
+                Label(
+                    note.isPinned ? "Unpin Note" : "Pin Note",
+                    systemImage: note.isPinned ? "pin.slash" : "pin"
+                )
             }
 
             Button(role: .destructive) {
@@ -110,47 +154,51 @@ struct ContentView: View {
                 Label("Delete Note", systemImage: "trash")
             }
         }
+        .accessibilityHint("Open note. Touch and hold for more actions.")
     }
 
     private var emptyState: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 16) {
             Image(systemName: searchText.isEmpty ? "note.text" : "magnifyingglass")
-                .font(.system(size: 42, weight: .light))
+                .font(.system(size: 43, weight: .light))
                 .foregroundStyle(.secondary)
-                .padding(.bottom, 4)
+                .padding(.bottom, 3)
 
-            Text(searchText.isEmpty ? "Your notes live here" : "No matching notes")
-                .font(.title3.weight(.semibold))
+            Text(searchText.isEmpty ? "A fresh page" : "No matching notes")
+                .font(.title2.weight(.semibold))
 
-            Text(searchText.isEmpty ? "Capture an idea, make a list, or write something down." : "Try another search term.")
+            Text(searchText.isEmpty
+                 ? "Your thoughts, reminders, and ideas will find a home here."
+                 : "Try another title or search term.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-                .frame(maxWidth: 260)
+                .frame(maxWidth: 270)
 
             if searchText.isEmpty {
                 Button {
                     editingNote = Note()
                 } label: {
                     Label("Create your first note", systemImage: "plus")
-                        .font(.subheadline.weight(.semibold))
                 }
                 .buttonStyle(.borderedProminent)
-                .padding(.top, 6)
+                .padding(.top, 5)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(24)
+        .padding(28)
     }
 }
 
-private struct NoteRow: View {
+private struct NoteCard: View {
     let note: Note
 
     private var displayedTitle: String {
         let trimmed = note.title.trimmingCharacters(in: .whitespacesAndNewlines)
         if !trimmed.isEmpty { return trimmed }
-        let firstLine = note.content.split(separator: "\n", omittingEmptySubsequences: true).first
+        let firstLine = note.content
+            .split(separator: "\n", omittingEmptySubsequences: true)
+            .first
         return firstLine.map(String.init) ?? "Untitled Note"
     }
 
@@ -158,25 +206,29 @@ private struct NoteRow: View {
         let titleIsEmpty = note.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         if titleIsEmpty {
             let lines = note.content.split(separator: "\n", omittingEmptySubsequences: true)
-            return lines.dropFirst().joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+            return lines.dropFirst().joined(separator: " ")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
         }
         return note.content.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            HStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top, spacing: 10) {
                 Text(displayedTitle)
-                    .font(.headline)
+                    .font(.headline.weight(.semibold))
                     .foregroundStyle(.primary)
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
 
                 Spacer(minLength: 4)
 
                 if note.isPinned {
                     Image(systemName: "pin.fill")
-                        .font(.caption2)
+                        .font(.caption.weight(.semibold))
                         .foregroundStyle(.secondary)
+                        .padding(7)
+                        .background(Color(uiColor: .tertiarySystemFill), in: Circle())
                         .accessibilityLabel("Pinned")
                 }
             }
@@ -185,15 +237,24 @@ private struct NoteRow: View {
                 Text(preview)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                    .lineLimit(2)
+                    .lineLimit(3)
                     .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            Text(note.updatedAt.formatted(date: .abbreviated, time: .omitted))
-                .font(.caption)
-                .foregroundStyle(.tertiary)
+            HStack {
+                Label(note.updatedAt.formatted(date: .abbreviated, time: .omitted), systemImage: "clock")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.top, 2)
         }
-        .padding(.vertical, 5)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(RoundedRectangle(cornerRadius: 23, style: .continuous))
     }
 }
