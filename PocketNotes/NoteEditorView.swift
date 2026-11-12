@@ -56,7 +56,7 @@ struct NoteEditorView: View {
             .navigationTitle(originalNote.isEmpty ? "New Note" : "Edit Note")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .navigationBarLeading) {
                     Button {
                         isPinned.toggle()
                     } label: {
@@ -66,7 +66,7 @@ struct NoteEditorView: View {
                     .accessibilityLabel(isPinned ? "Unpin note" : "Pin note")
                 }
 
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
                         saveAndClose()
                     }
