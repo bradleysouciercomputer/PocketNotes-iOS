@@ -11,6 +11,8 @@ struct NoteEditorView: View {
     @State private var isPinned: Bool
     @State private var isFavorite: Bool
     @State private var folder: String
+    @State private var tagsText: String
+    @State private var color: String
 
     init(note: Note, onSave: @escaping (Note) -> Void) {
         originalNote = note
@@ -20,6 +22,8 @@ struct NoteEditorView: View {
         _isPinned = State(initialValue: note.isPinned)
         _isFavorite = State(initialValue: note.isFavorite)
         _folder = State(initialValue: note.folder)
+        _tagsText = State(initialValue: note.tags.joined(separator: ", "))
+        _color = State(initialValue: note.color)
     }
 
     private var wordCount: Int {
@@ -54,6 +58,33 @@ struct NoteEditorView: View {
 
                     Spacer()
 
+                    Menu {
+                        ForEach(NoteColor.allCases) { option in
+                            Button {
+                                color = option.rawValue
+                            } label: {
+                                HStack {
+                                    Circle()
+                                        .fill(noteColor(option.rawValue))
+                                        .frame(width: 12, height: 12)
+                                    Text(option.rawValue)
+                                    if color == option.rawValue {
+                                        Spacer()
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        Circle()
+                            .fill(noteColor(color))
+                            .frame(width: 18, height: 18)
+                            .frame(width: 38, height: 38)
+                    }
+                    .buttonStyle(.plain)
+                    .modifier(EditorGlassCapsule())
+                    .accessibilityLabel("Choose note color")
+
                     Button {
                         isFavorite.toggle()
                     } label: {
@@ -72,6 +103,12 @@ struct NoteEditorView: View {
                     .lineLimit(1...3)
                     .textInputAutocapitalization(.sentences)
                     .accessibilityLabel("Note title")
+
+                TextField("Add tags, separated by commas", text: $tagsText)
+                    .font(.subheadline)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .accessibilityLabel("Note tags")
 
                 Rectangle()
                     .fill(Color.primary.opacity(0.08))
@@ -139,6 +176,30 @@ struct NoteEditorView: View {
                         }
 
                         Button {
+                            insertNumberedItem()
+                        } label: {
+                            Label("Numbered Item", systemImage: "list.number")
+                        }
+
+                        Button {
+                            insertHeading()
+                        } label: {
+                            Label("Heading", systemImage: "textformat.size.larger")
+                        }
+
+                        Button {
+                            insertQuote()
+                        } label: {
+                            Label("Quote", systemImage: "text.quote")
+                        }
+
+                        Button {
+                            insertDivider()
+                        } label: {
+                            Label("Divider", systemImage: "minus")
+                        }
+
+                        Button {
                             insertDate()
                         } label: {
                             Label("Insert Date", systemImage: "calendar")
@@ -184,6 +245,49 @@ struct NoteEditorView: View {
         appendAtEnd(Date.now.formatted(date: .long, time: .shortened))
     }
 
+    private func insertNumberedItem() {
+        let existingNumbers = content
+            .split(separator: "\\n")
+            .compactMap { line -> Int? in
+                let firstPart = line.split(separator: ".", maxSplits: 1).first
+                return firstPart.flatMap { Int($0) }
+            }
+        appendAtEnd("\\((existingNumbers.max() ?? 0) + 1). ")
+    }
+
+    private func insertHeading() {
+        appendAtEnd("## ")
+    }
+
+    private func insertQuote() {
+        appendAtEnd("> ")
+    }
+
+    private func insertDivider() {
+        appendAtEnd("────────────")
+    }
+
+    private func parsedTags() -> [String] {
+        var seen = Set<String>()
+        return tagsText
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty && seen.insert($0.lowercased()).inserted }
+    }
+
+    private func noteColor(_ value: String) -> Color {
+        switch NoteColor(rawValue: value) {
+        case .red: return .red
+        case .orange: return .orange
+        case .yellow: return .yellow
+        case .green: return .green
+        case .blue: return .blue
+        case .purple: return .purple
+        case .pink: return .pink
+        default: return Color(uiColor: .tertiarySystemFill)
+        }
+    }
+
     private func saveDraft() {
         var updated = originalNote
         updated.title = title
@@ -191,6 +295,8 @@ struct NoteEditorView: View {
         updated.isPinned = isPinned
         updated.isFavorite = isFavorite
         updated.folder = folder
+        updated.tags = parsedTags()
+        updated.color = color
         onSave(updated)
     }
 
