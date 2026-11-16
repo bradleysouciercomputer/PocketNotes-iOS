@@ -16,6 +16,19 @@ enum NoteFolder: String, CaseIterable, Identifiable {
     }
 }
 
+enum NoteColor: String, CaseIterable, Identifiable {
+    case standard = "Default"
+    case red = "Red"
+    case orange = "Orange"
+    case yellow = "Yellow"
+    case green = "Green"
+    case blue = "Blue"
+    case purple = "Purple"
+    case pink = "Pink"
+
+    var id: String { rawValue }
+}
+
 struct Note: Identifiable, Codable, Equatable {
     var id: UUID
     var title: String
@@ -26,6 +39,8 @@ struct Note: Identifiable, Codable, Equatable {
     var isFavorite: Bool
     var isDeleted: Bool
     var folder: String
+    var tags: [String]
+    var color: String
 
     init(
         id: UUID = UUID(),
@@ -36,7 +51,9 @@ struct Note: Identifiable, Codable, Equatable {
         isPinned: Bool = false,
         isFavorite: Bool = false,
         isDeleted: Bool = false,
-        folder: String = NoteFolder.personal.rawValue
+        folder: String = NoteFolder.personal.rawValue,
+        tags: [String] = [],
+        color: String = NoteColor.standard.rawValue
     ) {
         self.id = id
         self.title = title
@@ -47,6 +64,8 @@ struct Note: Identifiable, Codable, Equatable {
         self.isFavorite = isFavorite
         self.isDeleted = isDeleted
         self.folder = folder
+        self.tags = tags
+        self.color = color
     }
 
     var isEmpty: Bool {
@@ -56,7 +75,7 @@ struct Note: Identifiable, Codable, Equatable {
 
     private enum CodingKeys: String, CodingKey {
         case id, title, content, createdAt, updatedAt
-        case isPinned, isFavorite, isDeleted, folder
+        case isPinned, isFavorite, isDeleted, folder, tags, color
     }
 
     // New fields are optional during decoding so notes created by earlier
@@ -72,5 +91,7 @@ struct Note: Identifiable, Codable, Equatable {
         isFavorite = try values.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
         isDeleted = try values.decodeIfPresent(Bool.self, forKey: .isDeleted) ?? false
         folder = try values.decodeIfPresent(String.self, forKey: .folder) ?? NoteFolder.personal.rawValue
+        tags = try values.decodeIfPresent([String].self, forKey: .tags) ?? []
+        color = try values.decodeIfPresent(String.self, forKey: .color) ?? NoteColor.standard.rawValue
     }
 }
