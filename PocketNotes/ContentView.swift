@@ -296,7 +296,7 @@ struct ContentView: View {
                     Label("Duplicate Note", systemImage: "plus.square.on.square")
                 }
 
-                ShareLink(item: shareText(for: note))
+                ShareLink(item: shareText(for: note)) {
                     Label("Share Note", systemImage: "square.and.arrow.up")
                 }
 
