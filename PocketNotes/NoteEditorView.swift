@@ -247,12 +247,12 @@ struct NoteEditorView: View {
 
     private func insertNumberedItem() {
         let existingNumbers = content
-            .split(separator: "\\n")
+            .split(separator: "\n")
             .compactMap { line -> Int? in
                 let firstPart = line.split(separator: ".", maxSplits: 1).first
                 return firstPart.flatMap { Int($0) }
             }
-        appendAtEnd("\\((existingNumbers.max() ?? 0) + 1). ")
+        appendAtEnd("\((existingNumbers.max() ?? 0) + 1). ")
     }
 
     private func insertHeading() {
@@ -277,13 +277,13 @@ struct NoteEditorView: View {
 
     private func noteColor(_ value: String) -> Color {
         switch NoteColor(rawValue: value) {
-        case .red: return .red
-        case .orange: return .orange
-        case .yellow: return .yellow
-        case .green: return .green
-        case .blue: return .blue
-        case .purple: return .purple
-        case .pink: return .pink
+        case .some(.red): return .red
+        case .some(.orange): return .orange
+        case .some(.yellow): return .yellow
+        case .some(.green): return .green
+        case .some(.blue): return .blue
+        case .some(.purple): return .purple
+        case .some(.pink): return .pink
         default: return Color(uiColor: .tertiarySystemFill)
         }
     }
