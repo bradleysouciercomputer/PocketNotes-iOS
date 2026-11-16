@@ -446,7 +446,7 @@ private struct NoteCard: View {
 
             if !note.tags.isEmpty {
                 HStack(spacing: 5) {
-                    ForEach(note.tags.prefix(3), id: \\.self) { tag in
+                    ForEach(note.tags.prefix(3), id: \.self) { tag in
                         Text("#\(tag)")
                             .font(.caption2.weight(.medium))
                             .lineLimit(1)
