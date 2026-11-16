@@ -139,17 +139,17 @@ struct ContentView: View {
                         }
                         Divider()
                         Button {
-                            createNote(title: "Meeting Notes", content: "Date: \\(Date.now.formatted(date: .long, time: .omitted))\\nAttendees:\\n\\nAgenda\\n• \\n\\nNotes\\n\\nAction Items\\n☐ ")
+                            createNote(title: "Meeting Notes", content: "Date: \(Date.now.formatted(date: .long, time: .omitted))\nAttendees:\n\nAgenda\n• \n\nNotes\n\nAction Items\n☐ ")
                         } label: {
                             Label("Meeting Notes", systemImage: "person.3")
                         }
                         Button {
-                            createNote(title: "Daily Journal", content: "Today I feel...\\n\\nWhat happened today?\\n\\nOne thing I'm grateful for:\\n")
+                            createNote(title: "Daily Journal", content: "Today I feel...\n\nWhat happened today?\n\nOne thing I'm grateful for:\n")
                         } label: {
                             Label("Daily Journal", systemImage: "book.closed")
                         }
                         Button {
-                            createNote(title: "To-Do List", content: "☐ First task\\n☐ Second task\\n☐ Third task")
+                            createNote(title: "To-Do List", content: "☐ First task\n☐ Second task\n☐ Third task")
                         } label: {
                             Label("To-Do List", systemImage: "checklist")
                         }
@@ -360,13 +360,13 @@ struct ContentView: View {
 
     private func noteBackground(_ value: String) -> Color {
         switch NoteColor(rawValue: value) {
-        case .red: return Color.red.opacity(0.11)
-        case .orange: return Color.orange.opacity(0.13)
-        case .yellow: return Color.yellow.opacity(0.16)
-        case .green: return Color.green.opacity(0.11)
-        case .blue: return Color.blue.opacity(0.11)
-        case .purple: return Color.purple.opacity(0.11)
-        case .pink: return Color.pink.opacity(0.12)
+        case .some(.red): return Color.red.opacity(0.11)
+        case .some(.orange): return Color.orange.opacity(0.13)
+        case .some(.yellow): return Color.yellow.opacity(0.16)
+        case .some(.green): return Color.green.opacity(0.11)
+        case .some(.blue): return Color.blue.opacity(0.11)
+        case .some(.purple): return Color.purple.opacity(0.11)
+        case .some(.pink): return Color.pink.opacity(0.12)
         default: return Color(uiColor: .secondarySystemGroupedBackground)
         }
     }
@@ -447,7 +447,7 @@ private struct NoteCard: View {
             if !note.tags.isEmpty {
                 HStack(spacing: 5) {
                     ForEach(note.tags.prefix(3), id: \\.self) { tag in
-                        Text("#\\(tag)")
+                        Text("#\(tag)")
                             .font(.caption2.weight(.medium))
                             .lineLimit(1)
                             .padding(.horizontal, 7)
