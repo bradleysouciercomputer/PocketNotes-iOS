@@ -26,7 +26,9 @@ final class NotesStore: ObservableObject {
                 existing.isPinned != draft.isPinned ||
                 existing.isFavorite != draft.isFavorite ||
                 existing.isDeleted != draft.isDeleted ||
-                existing.folder != draft.folder
+                existing.folder != draft.folder ||
+                existing.tags != draft.tags ||
+                existing.color != draft.color
             note.updatedAt = changed ? Date() : existing.updatedAt
             notes[existingIndex] = note
         } else {
@@ -37,6 +39,23 @@ final class NotesStore: ObservableObject {
         }
 
         persist()
+    }
+
+    @discardableResult
+    func duplicate(_ note: Note) -> Note {
+        var copy = note
+        copy.id = UUID()
+        copy.title = note.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? "Copy of Note"
+            : "Copy of \(note.title)"
+        copy.createdAt = Date()
+        copy.updatedAt = Date()
+        copy.isPinned = false
+        copy.isFavorite = false
+        copy.isDeleted = false
+        notes.append(copy)
+        persist()
+        return copy
     }
 
     func togglePin(_ note: Note) {
@@ -60,6 +79,11 @@ final class NotesStore: ObservableObject {
 
     func deletePermanently(_ note: Note) {
         notes.removeAll { $0.id == note.id }
+        persist()
+    }
+
+    func emptyTrash() {
+        notes.removeAll { $0.isDeleted }
         persist()
     }
 
