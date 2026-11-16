@@ -40,6 +40,15 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             build
 
+      - name: Verify full-screen launch configuration
+        run: |
+          set -euo pipefail
+          APP_PATH="$GITHUB_WORKSPACE/build/DerivedData/Build/Products/Release-iphoneos/PocketNotes.app"
+          LAUNCH_NAME="$(/usr/libexec/PlistBuddy -c 'Print :UILaunchStoryboardName' "$APP_PATH/Info.plist")"
+          test "$LAUNCH_NAME" = "LaunchScreen"
+          test -d "$APP_PATH/LaunchScreen.storyboardc"
+          echo "Verified launch storyboard: $LAUNCH_NAME"
+
       - name: Package IPA
         run: |
           set -euo pipefail
