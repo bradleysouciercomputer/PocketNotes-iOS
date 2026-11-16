@@ -55,13 +55,15 @@ struct ContentView: View {
     @State private var activeFilter: NotesFilter = .all
     @State private var sortOrder: NoteSort = .recentlyEdited
     @State private var editingNote: Note?
+    @State private var showingEmptyTrashConfirmation = false
 
     private var visibleNotes: [Note] {
         let filtered = store.notes.filter { note in
             activeFilter.includes(note) &&
             (searchText.isEmpty ||
              note.title.localizedCaseInsensitiveContains(searchText) ||
-             note.content.localizedCaseInsensitiveContains(searchText))
+             note.content.localizedCaseInsensitiveContains(searchText) ||
+             note.tags.contains(where: { $0.localizedCaseInsensitiveContains(searchText) }))
         }
 
         return filtered.sorted { lhs, rhs in
@@ -114,6 +116,14 @@ struct ContentView: View {
                                 Text(option.rawValue).tag(option)
                             }
                         }
+                        if activeFilter == .trash {
+                            Divider()
+                            Button(role: .destructive) {
+                                showingEmptyTrashConfirmation = true
+                            } label: {
+                                Label("Empty Recently Deleted", systemImage: "trash.slash")
+                            }
+                        }
                     } label: {
                         Image(systemName: "arrow.up.arrow.down")
                     }
@@ -121,8 +131,28 @@ struct ContentView: View {
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        createNote()
+                    Menu {
+                        Button {
+                            createNote()
+                        } label: {
+                            Label("Blank Note", systemImage: "square.and.pencil")
+                        }
+                        Divider()
+                        Button {
+                            createNote(title: "Meeting Notes", content: "Date: \\(Date.now.formatted(date: .long, time: .omitted))\\nAttendees:\\n\\nAgenda\\n• \\n\\nNotes\\n\\nAction Items\\n☐ ")
+                        } label: {
+                            Label("Meeting Notes", systemImage: "person.3")
+                        }
+                        Button {
+                            createNote(title: "Daily Journal", content: "Today I feel...\\n\\nWhat happened today?\\n\\nOne thing I'm grateful for:\\n")
+                        } label: {
+                            Label("Daily Journal", systemImage: "book.closed")
+                        }
+                        Button {
+                            createNote(title: "To-Do List", content: "☐ First task\\n☐ Second task\\n☐ Third task")
+                        } label: {
+                            Label("To-Do List", systemImage: "checklist")
+                        }
                     } label: {
                         Image(systemName: "square.and.pencil")
                             .font(.system(size: 18, weight: .semibold))
@@ -136,6 +166,18 @@ struct ContentView: View {
                 }
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
+            }
+            .confirmationDialog(
+                "Permanently delete all notes in Recently Deleted?",
+                isPresented: $showingEmptyTrashConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Delete All Permanently", role: .destructive) {
+                    store.emptyTrash()
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("This action cannot be undone.")
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -212,7 +254,7 @@ struct ContentView: View {
                 .padding(18)
                 .frame(maxWidth: .infinity, minHeight: 132, alignment: .leading)
                 .background(
-                    Color(uiColor: .secondarySystemGroupedBackground),
+                    noteBackground(note.color),
                     in: RoundedRectangle(cornerRadius: 24, style: .continuous)
                 )
                 .overlay {
@@ -248,7 +290,13 @@ struct ContentView: View {
                     Label(note.isFavorite ? "Remove Favorite" : "Add to Favorites", systemImage: note.isFavorite ? "star.slash" : "star")
                 }
 
-                ShareLink(item: shareText(for: note)) {
+                Button {
+                    editingNote = store.duplicate(note)
+                } label: {
+                    Label("Duplicate Note", systemImage: "plus.square.on.square")
+                }
+
+                ShareLink(item: shareText(for: note))
                     Label("Share Note", systemImage: "square.and.arrow.up")
                 }
 
@@ -310,9 +358,22 @@ struct ContentView: View {
         width >= 980 ? 28 : 18
     }
 
-    private func createNote() {
+    private func noteBackground(_ value: String) -> Color {
+        switch NoteColor(rawValue: value) {
+        case .red: return Color.red.opacity(0.11)
+        case .orange: return Color.orange.opacity(0.13)
+        case .yellow: return Color.yellow.opacity(0.16)
+        case .green: return Color.green.opacity(0.11)
+        case .blue: return Color.blue.opacity(0.11)
+        case .purple: return Color.purple.opacity(0.11)
+        case .pink: return Color.pink.opacity(0.12)
+        default: return Color(uiColor: .secondarySystemGroupedBackground)
+        }
+    }
+
+    private func createNote(title: String = "", content: String = "") {
         let folder = activeFilter.folder ?? NoteFolder.personal.rawValue
-        editingNote = Note(folder: folder)
+        editingNote = Note(title: title, content: content, folder: folder)
     }
 
     private func displayTitle(for note: Note) -> String {
@@ -381,6 +442,20 @@ private struct NoteCard: View {
                     .lineLimit(3)
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            if !note.tags.isEmpty {
+                HStack(spacing: 5) {
+                    ForEach(note.tags.prefix(3), id: \\.self) { tag in
+                        Text("#\\(tag)")
+                            .font(.caption2.weight(.medium))
+                            .lineLimit(1)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 4)
+                            .background(Color.primary.opacity(0.06), in: Capsule())
+                    }
+                }
+                .padding(.top, 1)
             }
 
             Spacer(minLength: 4)
