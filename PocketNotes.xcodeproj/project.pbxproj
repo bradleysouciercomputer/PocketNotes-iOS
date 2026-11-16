@@ -11,6 +11,7 @@
 		A10000000000000000000003 /* NotesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000003 /* NotesStore.swift */; };
 		A10000000000000000000004 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000004 /* ContentView.swift */; };
 		A10000000000000000000005 /* NoteEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000005 /* NoteEditorView.swift */; };
+		A10000000000000000000006 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000007 /* LaunchScreen.storyboard */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,6 +21,7 @@
 		B10000000000000000000004 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		B10000000000000000000005 /* NoteEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteEditorView.swift; sourceTree = "<group>"; };
 		B10000000000000000000006 /* PocketNotes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PocketNotes.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B10000000000000000000007 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -48,6 +50,7 @@
 				B10000000000000000000003 /* NotesStore.swift */,
 				B10000000000000000000004 /* ContentView.swift */,
 				B10000000000000000000005 /* NoteEditorView.swift */,
+				B10000000000000000000007 /* LaunchScreen.storyboard */,
 			);
 			path = PocketNotes;
 			sourceTree = "<group>";
@@ -108,7 +111,9 @@
 		C10000000000000000000003 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
-			files = ();
+			files = (
+				A10000000000000000000006 /* LaunchScreen.storyboard in Resources */,
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
@@ -200,7 +205,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Pocket Notes";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.PocketNotes;
@@ -219,6 +224,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Pocket Notes";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.PocketNotes;
