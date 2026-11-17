@@ -6,6 +6,7 @@ private enum NotesFilter: String, CaseIterable, Identifiable {
     case personal = "Personal"
     case work = "Work"
     case ideas = "Ideas"
+    case archived = "Archived"
     case trash = "Recently Deleted"
 
     var id: String { rawValue }
@@ -17,6 +18,7 @@ private enum NotesFilter: String, CaseIterable, Identifiable {
         case .personal: return "person"
         case .work: return "briefcase"
         case .ideas: return "lightbulb"
+        case .archived: return "archivebox"
         case .trash: return "trash"
         }
     }
@@ -32,10 +34,11 @@ private enum NotesFilter: String, CaseIterable, Identifiable {
 
     func includes(_ note: Note) -> Bool {
         switch self {
-        case .all: return !note.isDeleted
-        case .favorites: return !note.isDeleted && note.isFavorite
+        case .all: return !note.isDeleted && !note.isArchived
+        case .favorites: return !note.isDeleted && !note.isArchived && note.isFavorite
         case .personal, .work, .ideas:
-            return !note.isDeleted && note.folder == folder
+            return !note.isDeleted && !note.isArchived && note.folder == folder
+        case .archived: return !note.isDeleted && note.isArchived
         case .trash: return note.isDeleted
         }
     }
@@ -122,6 +125,12 @@ struct ContentView: View {
                                 showingEmptyTrashConfirmation = true
                             } label: {
                                 Label("Empty Recently Deleted", systemImage: "trash.slash")
+                            }
+                        }
+                        if let backup = store.exportBackup() {
+                            Divider()
+                            ShareLink(item: backup) {
+                                Label("Export All Notes (JSON)", systemImage: "square.and.arrow.up")
                             }
                         }
                     } label: {
@@ -285,6 +294,16 @@ struct ContentView: View {
                 }
 
                 Button {
+                    if note.isArchived {
+                        store.unarchive(note)
+                    } else {
+                        store.archive(note)
+                    }
+                } label: {
+                    Label(note.isArchived ? "Unarchive Note" : "Archive Note", systemImage: note.isArchived ? "tray.and.arrow.up" : "archivebox")
+                }
+
+                Button {
                     store.toggleFavorite(note)
                 } label: {
                     Label(note.isFavorite ? "Remove Favorite" : "Add to Favorites", systemImage: note.isFavorite ? "star.slash" : "star")
@@ -343,6 +362,7 @@ struct ContentView: View {
     private var emptyTitle: String {
         if !searchText.isEmpty { return "No matching notes" }
         if activeFilter == .trash { return "Recently Deleted is Empty" }
+        if activeFilter == .archived { return "No Archived Notes" }
         if activeFilter == .favorites { return "No Favorites Yet" }
         return "A Fresh Page"
     }
@@ -350,6 +370,7 @@ struct ContentView: View {
     private var emptyDescription: String {
         if !searchText.isEmpty { return "Try another title or search term." }
         if activeFilter == .trash { return "Notes you move here will stay until you permanently delete or restore them." }
+        if activeFilter == .archived { return "Archived notes are tucked away from your main list. Unarchive them whenever you need them again." }
         if activeFilter == .favorites { return "Mark notes with a star to keep your important ideas together." }
         return "Your thoughts, reminders, and ideas will find a home here."
     }
