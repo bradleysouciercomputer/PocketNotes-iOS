@@ -13,6 +13,7 @@ struct NoteEditorView: View {
     @State private var folder: String
     @State private var tagsText: String
     @State private var color: String
+    @State private var reminderAt: Date?
 
     init(note: Note, onSave: @escaping (Note) -> Void) {
         originalNote = note
@@ -24,10 +25,27 @@ struct NoteEditorView: View {
         _folder = State(initialValue: note.folder)
         _tagsText = State(initialValue: note.tags.joined(separator: ", "))
         _color = State(initialValue: note.color)
+        _reminderAt = State(initialValue: note.reminderAt)
     }
 
     private var wordCount: Int {
         content.split { $0.isWhitespace || $0.isNewline }.count
+    }
+
+    private var reminderDateBinding: Binding<Date> {
+        Binding(
+            get: { reminderAt ?? Date().addingTimeInterval(3600) },
+            set: { reminderAt = $0 }
+        )
+    }
+
+    private var reminderEnabledBinding: Binding<Bool> {
+        Binding(
+            get: { reminderAt != nil },
+            set: { enabled in
+                reminderAt = enabled ? Date().addingTimeInterval(3600) : nil
+            }
+        )
     }
 
     private var shareText: String {
@@ -109,6 +127,30 @@ struct NoteEditorView: View {
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .accessibilityLabel("Note tags")
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Toggle(isOn: reminderEnabledBinding) {
+                        Label("Reminder", systemImage: "bell.badge")
+                            .font(.subheadline.weight(.medium))
+                    }
+                    .tint(.accentColor)
+
+                    if reminderAt != nil {
+                        DatePicker(
+                            "Remind me",
+                            selection: reminderDateBinding,
+                            in: Date()...,
+                            displayedComponents: [.date, .hourAndMinute]
+                        )
+                        .datePickerStyle(.compact)
+                        .font(.subheadline)
+                    }
+                }
+                .padding(12)
+                .background(
+                    Color(uiColor: .secondarySystemGroupedBackground),
+                    in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+                )
 
                 Rectangle()
                     .fill(Color.primary.opacity(0.08))
@@ -297,6 +339,7 @@ struct NoteEditorView: View {
         updated.folder = folder
         updated.tags = parsedTags()
         updated.color = color
+        updated.reminderAt = reminderAt
         onSave(updated)
     }
 
