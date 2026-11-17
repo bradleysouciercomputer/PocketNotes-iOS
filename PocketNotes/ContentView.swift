@@ -3,6 +3,7 @@ import SwiftUI
 private enum NotesFilter: String, CaseIterable, Identifiable {
     case all = "All Notes"
     case favorites = "Favorites"
+    case reminders = "Reminders"
     case personal = "Personal"
     case work = "Work"
     case ideas = "Ideas"
@@ -15,6 +16,7 @@ private enum NotesFilter: String, CaseIterable, Identifiable {
         switch self {
         case .all: return "note.text"
         case .favorites: return "star"
+        case .reminders: return "bell"
         case .personal: return "person"
         case .work: return "briefcase"
         case .ideas: return "lightbulb"
@@ -36,6 +38,7 @@ private enum NotesFilter: String, CaseIterable, Identifiable {
         switch self {
         case .all: return !note.isDeleted && !note.isArchived
         case .favorites: return !note.isDeleted && !note.isArchived && note.isFavorite
+        case .reminders: return !note.isDeleted && !note.isArchived && note.reminderAt != nil
         case .personal, .work, .ideas:
             return !note.isDeleted && !note.isArchived && note.folder == folder
         case .archived: return !note.isDeleted && note.isArchived
@@ -364,6 +367,7 @@ struct ContentView: View {
         if activeFilter == .trash { return "Recently Deleted is Empty" }
         if activeFilter == .archived { return "No Archived Notes" }
         if activeFilter == .favorites { return "No Favorites Yet" }
+        if activeFilter == .reminders { return "No Reminders Scheduled" }
         return "A Fresh Page"
     }
 
@@ -372,6 +376,7 @@ struct ContentView: View {
         if activeFilter == .trash { return "Notes you move here will stay until you permanently delete or restore them." }
         if activeFilter == .archived { return "Archived notes are tucked away from your main list. Unarchive them whenever you need them again." }
         if activeFilter == .favorites { return "Mark notes with a star to keep your important ideas together." }
+        if activeFilter == .reminders { return "Turn on a reminder inside any note to see it here." }
         return "Your thoughts, reminders, and ideas will find a home here."
     }
 
@@ -482,8 +487,13 @@ private struct NoteCard: View {
             Spacer(minLength: 4)
 
             HStack(spacing: 6) {
-                Label(note.folder, systemImage: folderSymbol(note.folder))
+                if let reminderAt = note.reminderAt, !isInTrash {
+                    Label(reminderAt.formatted(date: .abbreviated, time: .shortened), systemImage: "bell")
+                        .lineLimit(1)
+                } else {
+                    Label(note.folder, systemImage: folderSymbol(note.folder))
                     .lineLimit(1)
+                }
 
                 Spacer(minLength: 4)
 
