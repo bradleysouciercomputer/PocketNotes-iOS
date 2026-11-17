@@ -11,7 +11,11 @@ A native SwiftUI notes app for iPhone and iPad, with an adaptive full-screen int
 - Add multiple tags to notes
 - Choose a color for each note
 - Pin notes and mark favorites
+- Schedule local notification reminders from the note editor
+- Browse a dedicated Reminders smart view
+- Archive notes without deleting them
 - Recently Deleted with restore, individual permanent deletion, and empty-trash confirmation
+- Export all notes, including archived and trashed notes, as a JSON backup
 - Sort by recently edited, oldest first, or title
 - Start quickly with Meeting Notes, Daily Journal, and To-Do List templates
 - Insert checkboxes, bullets, numbered items, headings, quotes, dividers, and dates
@@ -19,9 +23,9 @@ A native SwiftUI notes app for iPhone and iPad, with an adaptive full-screen int
 - Adaptive one-, two-, and three-column layouts based on available screen width
 - Full-height note editor and a registered adaptive launch storyboard
 - Liquid Glass controls on supported iOS versions, with compatible material fallbacks
-- Local-only: no account, server, or internet connection required
+- Local-only: no account or server required
 
-Notes are stored in the app's private Documents folder. They are not automatically synced to iCloud or another device. Reinstalling or deleting the app can remove its local data, so export or share important notes before doing so.
+Notes are stored in the app's private Documents folder. They are not automatically synced to iCloud or another device. Reinstalling or deleting the app can remove its local data, so export a JSON backup or share important notes before doing so. Local reminders require notification permission from iOS.
 
 ## Build an IPA without owning a Mac
 
