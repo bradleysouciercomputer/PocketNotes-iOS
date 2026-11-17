@@ -38,9 +38,11 @@ struct Note: Identifiable, Codable, Equatable {
     var isPinned: Bool
     var isFavorite: Bool
     var isDeleted: Bool
+    var isArchived: Bool
     var folder: String
     var tags: [String]
     var color: String
+    var reminderAt: Date?
 
     init(
         id: UUID = UUID(),
@@ -51,9 +53,11 @@ struct Note: Identifiable, Codable, Equatable {
         isPinned: Bool = false,
         isFavorite: Bool = false,
         isDeleted: Bool = false,
+        isArchived: Bool = false,
         folder: String = NoteFolder.personal.rawValue,
         tags: [String] = [],
-        color: String = NoteColor.standard.rawValue
+        color: String = NoteColor.standard.rawValue,
+        reminderAt: Date? = nil
     ) {
         self.id = id
         self.title = title
@@ -63,9 +67,11 @@ struct Note: Identifiable, Codable, Equatable {
         self.isPinned = isPinned
         self.isFavorite = isFavorite
         self.isDeleted = isDeleted
+        self.isArchived = isArchived
         self.folder = folder
         self.tags = tags
         self.color = color
+        self.reminderAt = reminderAt
     }
 
     var isEmpty: Bool {
@@ -75,7 +81,7 @@ struct Note: Identifiable, Codable, Equatable {
 
     private enum CodingKeys: String, CodingKey {
         case id, title, content, createdAt, updatedAt
-        case isPinned, isFavorite, isDeleted, folder, tags, color
+        case isPinned, isFavorite, isDeleted, isArchived, folder, tags, color, reminderAt
     }
 
     // New fields are optional during decoding so notes created by earlier
@@ -90,8 +96,10 @@ struct Note: Identifiable, Codable, Equatable {
         isPinned = try values.decodeIfPresent(Bool.self, forKey: .isPinned) ?? false
         isFavorite = try values.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
         isDeleted = try values.decodeIfPresent(Bool.self, forKey: .isDeleted) ?? false
+        isArchived = try values.decodeIfPresent(Bool.self, forKey: .isArchived) ?? false
         folder = try values.decodeIfPresent(String.self, forKey: .folder) ?? NoteFolder.personal.rawValue
         tags = try values.decodeIfPresent([String].self, forKey: .tags) ?? []
         color = try values.decodeIfPresent(String.self, forKey: .color) ?? NoteColor.standard.rawValue
+        reminderAt = try values.decodeIfPresent(Date.self, forKey: .reminderAt)
     }
 }
