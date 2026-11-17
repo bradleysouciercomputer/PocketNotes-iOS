@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import UserNotifications
 
 @MainActor
 final class NotesStore: ObservableObject {
@@ -26,9 +27,11 @@ final class NotesStore: ObservableObject {
                 existing.isPinned != draft.isPinned ||
                 existing.isFavorite != draft.isFavorite ||
                 existing.isDeleted != draft.isDeleted ||
+                existing.isArchived != draft.isArchived ||
                 existing.folder != draft.folder ||
                 existing.tags != draft.tags ||
-                existing.color != draft.color
+                existing.color != draft.color ||
+                existing.reminderAt != draft.reminderAt
             note.updatedAt = changed ? Date() : existing.updatedAt
             notes[existingIndex] = note
         } else {
@@ -39,6 +42,9 @@ final class NotesStore: ObservableObject {
         }
 
         persist()
+        Task {
+            await Self.updateReminder(for: note)
+        }
     }
 
     @discardableResult
@@ -53,6 +59,8 @@ final class NotesStore: ObservableObject {
         copy.isPinned = false
         copy.isFavorite = false
         copy.isDeleted = false
+        copy.isArchived = false
+        copy.reminderAt = nil
         notes.append(copy)
         persist()
         return copy
@@ -66,10 +74,22 @@ final class NotesStore: ObservableObject {
         update(note) { $0.isFavorite.toggle() }
     }
 
+    func archive(_ note: Note) {
+        update(note) {
+            $0.isArchived = true
+            $0.isPinned = false
+        }
+    }
+
+    func unarchive(_ note: Note) {
+        update(note) { $0.isArchived = false }
+    }
+
     func moveToTrash(_ note: Note) {
         update(note) {
             $0.isDeleted = true
             $0.isPinned = false
+            $0.isArchived = false
         }
     }
 
@@ -80,18 +100,42 @@ final class NotesStore: ObservableObject {
     func deletePermanently(_ note: Note) {
         notes.removeAll { $0.id == note.id }
         persist()
+        Task {
+            await UNUserNotificationCenter.current()
+                .removePendingNotificationRequests(withIdentifiers: [note.id.uuidString])
+        }
     }
 
     func emptyTrash() {
+        let deletedIDs = notes.filter(\.isDeleted).map { $0.id.uuidString }
         notes.removeAll { $0.isDeleted }
         persist()
+        UNUserNotificationCenter.current()
+            .removePendingNotificationRequests(withIdentifiers: deletedIDs)
+    }
+
+    func exportBackup() -> String? {
+        do {
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+            encoder.dateEncodingStrategy = .iso8601
+            let data = try encoder.encode(notes)
+            return String(data: data, encoding: .utf8)
+        } catch {
+            print("Pocket Notes could not export backup: \(error.localizedDescription)")
+            return nil
+        }
     }
 
     private func update(_ note: Note, changes: (inout Note) -> Void) {
         guard let index = notes.firstIndex(where: { $0.id == note.id }) else { return }
         changes(&notes[index])
         notes[index].updatedAt = Date()
+        let updated = notes[index]
         persist()
+        Task {
+            await Self.updateReminder(for: updated)
+        }
     }
 
     private func load() {
@@ -112,6 +156,48 @@ final class NotesStore: ObservableObject {
             try data.write(to: fileURL, options: .atomic)
         } catch {
             print("Pocket Notes could not save notes: \(error.localizedDescription)")
+        }
+    }
+
+    private static func updateReminder(for note: Note) async {
+        let center = UNUserNotificationCenter.current()
+        let identifier = note.id.uuidString
+
+        guard !note.isDeleted, let reminderDate = note.reminderAt, reminderDate > Date() else {
+            center.removePendingNotificationRequests(withIdentifiers: [identifier])
+            return
+        }
+
+        do {
+            var settings = await center.notificationSettings()
+            if settings.authorizationStatus == .notDetermined {
+                let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
+                guard granted else { return }
+                settings = await center.notificationSettings()
+            }
+
+            guard settings.authorizationStatus == .authorized ||
+                  settings.authorizationStatus == .provisional else {
+                return
+            }
+
+            let content = UNMutableNotificationContent()
+            let trimmedTitle = note.title.trimmingCharacters(in: .whitespacesAndNewlines)
+            content.title = trimmedTitle.isEmpty ? "Pocket Notes Reminder" : trimmedTitle
+            content.body = note.content.isEmpty ? "You asked to be reminded about this note." : String(note.content.prefix(180))
+            content.sound = .default
+
+            let components = Calendar.current.dateComponents(
+                [.year, .month, .day, .hour, .minute],
+                from: reminderDate
+            )
+            let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+            let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+
+            center.removePendingNotificationRequests(withIdentifiers: [identifier])
+            try await center.add(request)
+        } catch {
+            print("Pocket Notes could not schedule reminder: \(error.localizedDescription)")
         }
     }
 }
