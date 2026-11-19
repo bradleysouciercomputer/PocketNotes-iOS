@@ -75,7 +75,6 @@
 			buildPhases = (
 				C10000000000000000000002 /* Sources */,
 				C10000000000000000000001 /* Frameworks */,
-				G10000000000000000000001 /* Generate Pocket Notes App Icon */,
 				C10000000000000000000003 /* Resources */,
 			);
 			buildRules = ();
@@ -122,24 +121,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		G10000000000000000000001 /* Generate Pocket Notes App Icon */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = ();
-			inputPaths = (
-				"$(SRCROOT)/Scripts/GenerateAppIcon.swift",
-			);
-			name = "Generate Pocket Notes App Icon";
-			outputPaths = (
-				"$(SRCROOT)/PocketNotes/Assets.xcassets/AppIcon.appiconset/AppIcon.png",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "set -e\nunset SDKROOT\nswift \"$SRCROOT/Scripts/GenerateAppIcon.swift\"\n";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		C10000000000000000000002 /* Sources */ = {

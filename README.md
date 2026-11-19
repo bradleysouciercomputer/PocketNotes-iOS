@@ -46,4 +46,4 @@ The workflow uses GitHub-hosted macOS runners. No Apple signing certificate or p
 
 ## Xcode project
 
-Open `PocketNotes.xcodeproj` in Xcode on a Mac, select the `PocketNotes` scheme, and build for an iOS device. The GitHub Actions workflow is the easier route when working from Windows.
+Open `PocketNotes.xcodeproj` in Xcode on a Mac, select the `PocketNotes` scheme, and build for an iOS device. Before a direct Xcode build, run `swift Scripts/GenerateAppIcon.swift` from the repository root once to generate the 1024×1024 app icon asset. The GitHub Actions workflow performs this step automatically and is the easier route when working from Windows.
