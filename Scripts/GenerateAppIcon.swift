@@ -7,15 +7,16 @@ let iconSet = catalog.appendingPathComponent("AppIcon.appiconset", isDirectory: 
 try FileManager.default.createDirectory(at: iconSet, withIntermediateDirectories: true)
 
 guard let bitmap = NSBitmapImageRep(
+    bitmapDataPlanes: nil,
     pixelsWide: 1024, pixelsHigh: 1024, bitsPerSample: 8,
     samplesPerPixel: 4, hasAlpha: false, isPlanar: false,
-    colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+    colorSpaceName: .deviceRGB, bitmapFormat: [], bytesPerRow: 0, bitsPerPixel: 0
 ), let graphics = NSGraphicsContext(bitmapImageRep: bitmap) else {
     fatalError("Could not create app icon bitmap")
 }
 NSGraphicsContext.saveGraphicsState()
 NSGraphicsContext.current = graphics
-graphics.imageInterpolation = .high
+graphics.imageInterpolation = NSImageInterpolation.high
 let c = graphics.cgContext
 c.setAllowsAntialiasing(true)
 c.setShouldAntialias(true)

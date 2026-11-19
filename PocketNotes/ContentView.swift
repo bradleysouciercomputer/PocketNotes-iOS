@@ -181,7 +181,7 @@ struct ContentView: View {
                         Button {
                             createNote(title: "Project Plan", content: "Overview\n\nGoals\n• \n\nMilestones\n1. \n\nTasks\n☐ \n\nNotes\n")
                         } label: {
-                            Label("Project Plan", systemImage: "chart Gantt")
+                            Label("Project Plan", systemImage: "chart.bar")
                         }
                         Button {
                             createNote(title: "Shopping List", content: "☐ Produce\n☐ Dairy\n☐ Pantry\n☐ Household\n☐ Other")
