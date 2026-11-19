@@ -6,18 +6,18 @@ let catalog = root.appendingPathComponent("PocketNotes/Assets.xcassets", isDirec
 let iconSet = catalog.appendingPathComponent("AppIcon.appiconset", isDirectory: true)
 try FileManager.default.createDirectory(at: iconSet, withIntermediateDirectories: true)
 
-guard let bitmap = NSBitmapImageRep(
-    bitmapDataPlanes: nil,
-    pixelsWide: 1024, pixelsHigh: 1024, bitsPerSample: 8,
-    samplesPerPixel: 4, hasAlpha: false, isPlanar: false,
-    colorSpaceName: .deviceRGB, bitmapFormat: [], bytesPerRow: 0, bitsPerPixel: 0
-), let graphics = NSGraphicsContext(bitmapImageRep: bitmap) else {
-    fatalError("Could not create app icon bitmap")
+guard let context = CGContext(
+    data: nil,
+    width: 1024,
+    height: 1024,
+    bitsPerComponent: 8,
+    bytesPerRow: 0,
+    space: CGColorSpaceCreateDeviceRGB(),
+    bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue
+) else {
+    fatalError("Could not create app icon bitmap context")
 }
-NSGraphicsContext.saveGraphicsState()
-NSGraphicsContext.current = graphics
-graphics.imageInterpolation = NSImageInterpolation.high
-let c = graphics.cgContext
+let c = context
 c.setAllowsAntialiasing(true)
 c.setShouldAntialias(true)
 
@@ -107,8 +107,8 @@ c.addPath(CGPath(ellipseIn: CGRect(x: 315, y: 365, width: 52, height: 52), trans
 c.setFillColor(NSColor(calibratedRed: 0.015, green: 0.40, blue: 0.98, alpha: 1).cgColor)
 c.fillPath()
 line(CGRect(x: 405, y: 369, width: 300, height: 44), 22, ink)
-NSGraphicsContext.restoreGraphicsState()
-
+guard let cgImage = context.makeImage() else { fatalError("Could not create app icon image") }
+let bitmap = NSBitmapImageRep(cgImage: cgImage)
 guard let png = bitmap.representation(using: .png, properties: [:]) else { fatalError("Could not encode PNG") }
 try png.write(to: iconSet.appendingPathComponent("AppIcon.png"), options: .atomic)
 let iconJSON = """
