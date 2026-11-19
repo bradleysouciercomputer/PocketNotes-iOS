@@ -137,7 +137,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\nswift \"$SRCROOT/Scripts/GenerateAppIcon.swift\"\n";
+			shellScript = "set -e\nunset SDKROOT\nswift \"$SRCROOT/Scripts/GenerateAppIcon.swift\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
