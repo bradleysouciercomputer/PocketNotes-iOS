@@ -26,6 +26,13 @@ jobs:
           xcodebuild -version
           xcrun --sdk iphoneos --show-sdk-version
 
+      - name: Generate Pocket Notes app icon
+        run: |
+          set -euo pipefail
+          swift Scripts/GenerateAppIcon.swift
+          test -s PocketNotes/Assets.xcassets/AppIcon.appiconset/AppIcon.png
+          echo "Generated 1024x1024 Pocket Notes app icon"
+
       - name: Build unsigned iOS app
         run: |
           set -euo pipefail
@@ -47,7 +54,9 @@ jobs:
           LAUNCH_NAME="$(/usr/libexec/PlistBuddy -c 'Print :UILaunchStoryboardName' "$APP_PATH/Info.plist")"
           test "$LAUNCH_NAME" = "LaunchScreen"
           test -d "$APP_PATH/LaunchScreen.storyboardc"
+          test -s "$APP_PATH/Assets.car"
           echo "Verified launch storyboard: $LAUNCH_NAME"
+          echo "Verified compiled app asset catalog and AppIcon asset"
 
       - name: Package IPA
         run: |

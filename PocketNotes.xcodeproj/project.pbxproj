@@ -12,6 +12,7 @@
 		A10000000000000000000004 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000004 /* ContentView.swift */; };
 		A10000000000000000000005 /* NoteEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000005 /* NoteEditorView.swift */; };
 		A10000000000000000000006 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000007 /* LaunchScreen.storyboard */; };
+		A10000000000000000000007 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000008 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,6 +23,7 @@
 		B10000000000000000000005 /* NoteEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteEditorView.swift; sourceTree = "<group>"; };
 		B10000000000000000000006 /* PocketNotes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PocketNotes.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B10000000000000000000007 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		B10000000000000000000008 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -51,6 +53,7 @@
 				B10000000000000000000004 /* ContentView.swift */,
 				B10000000000000000000005 /* NoteEditorView.swift */,
 				B10000000000000000000007 /* LaunchScreen.storyboard */,
+				B10000000000000000000008 /* Assets.xcassets */,
 			);
 			path = PocketNotes;
 			sourceTree = "<group>";
@@ -113,6 +116,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10000000000000000000006 /* LaunchScreen.storyboard in Resources */,
+				A10000000000000000000007 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -205,6 +209,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Pocket Notes";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
@@ -224,6 +229,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Pocket Notes";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;

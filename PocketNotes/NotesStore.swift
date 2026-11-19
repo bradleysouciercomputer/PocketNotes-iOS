@@ -127,6 +127,43 @@ final class NotesStore: ObservableObject {
         }
     }
 
+    @discardableResult
+    func importBackup(_ data: Data, replacingExisting: Bool) throws -> Int {
+        let imported: [Note]
+        do {
+            let isoDecoder = JSONDecoder()
+            isoDecoder.dateDecodingStrategy = .iso8601
+            imported = try isoDecoder.decode([Note].self, from: data)
+        } catch {
+            // Also accept older JSON backups using JSONEncoder's numeric date format.
+            let legacyDecoder = JSONDecoder()
+            imported = try legacyDecoder.decode([Note].self, from: data)
+        }
+
+        let previousIDs = Set(notes.map { $0.id })
+        if replacingExisting {
+            notes = imported
+        } else {
+            var merged = Dictionary(uniqueKeysWithValues: notes.map { ($0.id, $0) })
+            for note in imported { merged[note.id] = note }
+            notes = merged.values.sorted { $0.updatedAt > $1.updatedAt }
+        }
+        persist()
+
+        let currentIDs = Set(notes.map { $0.id })
+        let removedIDs = previousIDs.subtracting(currentIDs).map { $0.uuidString }
+        Task {
+            let center = UNUserNotificationCenter.current()
+            if !removedIDs.isEmpty {
+                center.removePendingNotificationRequests(withIdentifiers: removedIDs)
+            }
+            for note in imported {
+                await Self.updateReminder(for: note)
+            }
+        }
+        return imported.count
+    }
+
     private func update(_ note: Note, changes: (inout Note) -> Void) {
         guard let index = notes.firstIndex(where: { $0.id == note.id }) else { return }
         changes(&notes[index])

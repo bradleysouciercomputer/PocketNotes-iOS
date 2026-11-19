@@ -1,9 +1,11 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 private enum NotesFilter: String, CaseIterable, Identifiable {
     case all = "All Notes"
     case favorites = "Favorites"
     case reminders = "Reminders"
+    case recent = "Recently Edited"
     case personal = "Personal"
     case work = "Work"
     case ideas = "Ideas"
@@ -17,6 +19,7 @@ private enum NotesFilter: String, CaseIterable, Identifiable {
         case .all: return "note.text"
         case .favorites: return "star"
         case .reminders: return "bell"
+        case .recent: return "clock"
         case .personal: return "person"
         case .work: return "briefcase"
         case .ideas: return "lightbulb"
@@ -39,6 +42,7 @@ private enum NotesFilter: String, CaseIterable, Identifiable {
         case .all: return !note.isDeleted && !note.isArchived
         case .favorites: return !note.isDeleted && !note.isArchived && note.isFavorite
         case .reminders: return !note.isDeleted && !note.isArchived && note.reminderAt != nil
+        case .recent: return !note.isDeleted && !note.isArchived && note.updatedAt >= Date().addingTimeInterval(-7 * 24 * 60 * 60)
         case .personal, .work, .ideas:
             return !note.isDeleted && !note.isArchived && note.folder == folder
         case .archived: return !note.isDeleted && note.isArchived
@@ -62,6 +66,10 @@ struct ContentView: View {
     @State private var sortOrder: NoteSort = .recentlyEdited
     @State private var editingNote: Note?
     @State private var showingEmptyTrashConfirmation = false
+    @State private var showingBackupImporter = false
+    @State private var backupDataForImport: Data?
+    @State private var showingBackupImportOptions = false
+    @State private var backupImportAlert: BackupImportAlert?
 
     private var visibleNotes: [Note] {
         let filtered = store.notes.filter { note in
@@ -130,8 +138,13 @@ struct ContentView: View {
                                 Label("Empty Recently Deleted", systemImage: "trash.slash")
                             }
                         }
+                        Divider()
+                        Button {
+                            showingBackupImporter = true
+                        } label: {
+                            Label("Import Backup (JSON)", systemImage: "square.and.arrow.down")
+                        }
                         if let backup = store.exportBackup() {
-                            Divider()
                             ShareLink(item: backup) {
                                 Label("Export All Notes (JSON)", systemImage: "square.and.arrow.up")
                             }
@@ -165,6 +178,26 @@ struct ContentView: View {
                         } label: {
                             Label("To-Do List", systemImage: "checklist")
                         }
+                        Button {
+                            createNote(title: "Project Plan", content: "Overview\n\nGoals\n• \n\nMilestones\n1. \n\nTasks\n☐ \n\nNotes\n")
+                        } label: {
+                            Label("Project Plan", systemImage: "chart Gantt")
+                        }
+                        Button {
+                            createNote(title: "Shopping List", content: "☐ Produce\n☐ Dairy\n☐ Pantry\n☐ Household\n☐ Other")
+                        } label: {
+                            Label("Shopping List", systemImage: "cart")
+                        }
+                        Button {
+                            createNote(title: "Reading List", content: "Book:\nAuthor:\n\nKey Takeaways\n• \n\nFavorite Quotes\n")
+                        } label: {
+                            Label("Reading List", systemImage: "books.vertical")
+                        }
+                        Button {
+                            createNote(title: "Weekly Review", content: "Wins this week\n• \n\nWhat I learned\n• \n\nWhat needs attention\n☐ \n\nPriorities for next week\n1. ")
+                        } label: {
+                            Label("Weekly Review", systemImage: "calendar.badge.clock")
+                        }
                     } label: {
                         Image(systemName: "square.and.pencil")
                             .font(.system(size: 18, weight: .semibold))
@@ -191,8 +224,76 @@ struct ContentView: View {
             } message: {
                 Text("This action cannot be undone.")
             }
+            .fileImporter(
+                isPresented: $showingBackupImporter,
+                allowedContentTypes: [.json]
+            ) { result in
+                switch result {
+                case .success(let url):
+                    let hasAccess = url.startAccessingSecurityScopedResource()
+                    defer {
+                        if hasAccess { url.stopAccessingSecurityScopedResource() }
+                    }
+                    do {
+                        backupDataForImport = try Data(contentsOf: url)
+                        showingBackupImportOptions = true
+                    } catch {
+                        backupImportAlert = BackupImportAlert(
+                            title: "Could Not Read Backup",
+                            message: error.localizedDescription
+                        )
+                    }
+                case .failure(let error):
+                    backupImportAlert = BackupImportAlert(
+                        title: "Import Cancelled",
+                        message: error.localizedDescription
+                    )
+                }
+            }
+            .confirmationDialog(
+                "Import this backup?",
+                isPresented: $showingBackupImportOptions,
+                titleVisibility: .visible
+            ) {
+                Button("Merge with Existing Notes") {
+                    performBackupImport(replacingExisting: false)
+                }
+                Button("Replace All Notes", role: .destructive) {
+                    performBackupImport(replacingExisting: true)
+                }
+                Button("Cancel", role: .cancel) {
+                    backupDataForImport = nil
+                }
+            } message: {
+                Text("Merge keeps your current notes and adds the backup. Replace removes your current library and uses only the backup.")
+            }
+            .alert(item: $backupImportAlert) { alert in
+                Alert(
+                    title: Text(alert.title),
+                    message: Text(alert.message),
+                    dismissButton: .default(Text("OK"))
+                )
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private func performBackupImport(replacingExisting: Bool) {
+        guard let data = backupDataForImport else { return }
+        do {
+            let count = try store.importBackup(data, replacingExisting: replacingExisting)
+            let action = replacingExisting ? "replaced your library with" : "merged"
+            backupImportAlert = BackupImportAlert(
+                title: "Backup Imported",
+                message: "\(count) notes were \(action) successfully."
+            )
+        } catch {
+            backupImportAlert = BackupImportAlert(
+                title: "Import Failed",
+                message: error.localizedDescription
+            )
+        }
+        backupDataForImport = nil
     }
 
     private var filterBar: some View {
@@ -519,4 +620,11 @@ private struct FilterChipGlass: ViewModifier {
             content.background(.ultraThinMaterial, in: Capsule())
         }
     }
+}
+
+
+private struct BackupImportAlert: Identifiable {
+    let id = UUID()
+    let title: String
+    let message: String
 }

@@ -16,6 +16,9 @@ A native SwiftUI notes app for iPhone and iPad, with an adaptive full-screen int
 - Archive notes without deleting them
 - Recently Deleted with restore, individual permanent deletion, and empty-trash confirmation
 - Export all notes, including archived and trashed notes, as a JSON backup
+- Import JSON backups by merging them into the current library or replacing the library
+- Browse notes edited within the last seven days in the Recently Edited smart view
+- Use Project Plan, Shopping List, Reading List, and Weekly Review templates
 - Sort by recently edited, oldest first, or title
 - Start quickly with Meeting Notes, Daily Journal, and To-Do List templates
 - Insert checkboxes, bullets, numbered items, headings, quotes, dividers, and dates
@@ -25,11 +28,13 @@ A native SwiftUI notes app for iPhone and iPad, with an adaptive full-screen int
 - Liquid Glass controls on supported iOS versions, with compatible material fallbacks
 - Local-only: no account or server required
 
+When importing a backup, Merge keeps the current library and adds or updates notes by ID. Replace All Notes removes the current library first. Keep an exported backup somewhere safe before choosing Replace.
+
 Notes are stored in the app's private Documents folder. They are not automatically synced to iCloud or another device. Reinstalling or deleting the app can remove its local data, so export a JSON backup or share important notes before doing so. Local reminders require notification permission from iOS.
 
 ## Build an IPA without owning a Mac
 
-This repository includes `.github/workflows/build-ipa.yml`. GitHub Actions runs Xcode on a hosted macOS machine, builds an unsigned iOS app, verifies the registered launch storyboard, and packages it as `PocketNotes.ipa`. Sideloadly signs the IPA for your Apple ID when you install it.
+This repository includes `.github/workflows/build-ipa.yml`. GitHub Actions runs Xcode on a hosted macOS machine, generates the Pocket Notes app icon, builds an unsigned iOS app, verifies the app icon and registered launch storyboard, and packages it as `PocketNotes.ipa`. Sideloadly signs the IPA for your Apple ID when you install it.
 
 1. Open the **Actions** tab in this repository.
 2. Select **Build Pocket Notes IPA**. The workflow also starts automatically whenever you push to `main`.
